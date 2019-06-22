@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -58,13 +58,13 @@ public:
             events.ScheduleEvent(EVENT_OOC_1, 10000);
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
-            _EnterCombat();
+            _JustEngagedWith();
             events.Reset();
             Talk(SAY_AGGRO);
-            events.ScheduleEvent(EVENT_FIREBALL, 100);
-            events.ScheduleEvent(EVENT_FIRE_NOVA, urand(8000, 12000));
+            events.ScheduleEvent(EVENT_FIREBALL, 100ms);
+            events.ScheduleEvent(EVENT_FIRE_NOVA, 8s, 12s);
         }
 
         void JustDied(Unit* /*killer*/) override
@@ -112,13 +112,16 @@ public:
                 {
                     case EVENT_FIREBALL:
                         DoCastVictim(SPELL_FIREBALL);
-                        events.ScheduleEvent(EVENT_FIREBALL, urand(2400, 3800));
+                        events.ScheduleEvent(EVENT_FIREBALL, 2400ms, 3800ms);
                         break;
                     case EVENT_FIRE_NOVA:
                         DoCast(me, SPELL_FIRE_NOVA);
-                        events.ScheduleEvent(EVENT_FIRE_NOVA, urand(11000, 16000));
+                        events.ScheduleEvent(EVENT_FIRE_NOVA, 11s, 16s);
                         break;
                 }
+
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
             }
             DoMeleeAttackIfReady();
         }
@@ -126,7 +129,7 @@ public:
 
     CreatureAI* GetAI(Creature* creature) const override
     {
-        return new boss_mordresh_fire_eyeAI(creature);
+        return GetRazorfenDownsAI<boss_mordresh_fire_eyeAI>(creature);
     }
 };
 

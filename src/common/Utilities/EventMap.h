@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -18,11 +18,11 @@
 #ifndef _EVENT_MAP_H_
 #define _EVENT_MAP_H_
 
-#include "Common.h"
+#include "Define.h"
 #include "Duration.h"
-#include "Util.h"
+#include <map>
 
-class EventMap
+class TC_COMMON_API EventMap
 {
     /**
     * Internal storage type.
@@ -116,14 +116,25 @@ public:
     * @name ScheduleEvent
     * @brief Creates new event entry in map.
     * @param eventId The id of the new event.
-    * @param time The time in milliseconds as std::chrono::duration until the event occurs.
+    * @param time The time until the event occurs as std::chrono type.
     * @param group The group which the event is associated to. Has to be between 1 and 8. 0 means it has no group.
     * @param phase The phase in which the event can occur. Has to be between 1 and 8. 0 means it can occur in all phases.
     */
-    void ScheduleEvent(uint32 eventId, Milliseconds const& time, uint32 group = 0, uint8 phase = 0)
+    void ScheduleEvent(uint32 eventId, Milliseconds time, uint32 group = 0, uint8 phase = 0)
     {
-        ScheduleEvent(eventId, time.count(), group, phase);
+        ScheduleEvent(eventId, uint32(time.count()), group, phase);
     }
+
+    /**
+    * @name ScheduleEvent
+    * @brief Creates new event entry in map.
+    * @param eventId The id of the new event.
+    * @param minTime The minimum time until the event occurs as std::chrono type.
+    * @param maxTime The maximum time until the event occurs as std::chrono type.
+    * @param group The group which the event is associated to. Has to be between 1 and 8. 0 means it has no group.
+    * @param phase The phase in which the event can occur. Has to be between 1 and 8. 0 means it can occur in all phases.
+    */
+    void ScheduleEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime, uint32 group = 0, uint32 phase = 0);
 
     /**
     * @name ScheduleEvent
@@ -139,14 +150,25 @@ public:
     * @name RescheduleEvent
     * @brief Cancels the given event and reschedules it.
     * @param eventId The id of the event.
-    * @param time The time in milliseconds as std::chrono::duration until the event occurs.
+    * @param time The time until the event occurs as std::chrono type.
     * @param group The group which the event is associated to. Has to be between 1 and 8. 0 means it has no group.
     * @param phase The phase in which the event can occur. Has to be between 1 and 8. 0 means it can occur in all phases.
     */
-    void RescheduleEvent(uint32 eventId, Milliseconds const& time, uint32 group = 0, uint8 phase = 0)
+    void RescheduleEvent(uint32 eventId, Milliseconds time, uint32 group = 0, uint8 phase = 0)
     {
-        RescheduleEvent(eventId, time.count(), group, phase);
+        RescheduleEvent(eventId, uint32(time.count()), group, phase);
     }
+
+    /**
+    * @name RescheduleEvent
+    * @brief Cancels the given event and reschedules it.
+    * @param eventId The id of the event.
+    * @param minTime The minimum time until the event occurs as std::chrono type.
+    * @param maxTime The maximum time until the event occurs as std::chrono type.
+    * @param group The group which the event is associated to. Has to be between 1 and 8. 0 means it has no group.
+    * @param phase The phase in which the event can occur. Has to be between 1 and 8. 0 means it can occur in all phases.
+    */
+    void RescheduleEvent(uint32 eventId, Milliseconds minTime, Milliseconds maxTime, uint32 group = 0, uint32 phase = 0);
 
     /**
     * @name RescheduleEvent
@@ -167,9 +189,9 @@ public:
     * @brief Repeats the mostly recently executed event.
     * @param time Time until in milliseconds as std::chrono::duration the event occurs.
     */
-    void Repeat(Milliseconds const& time)
+    void Repeat(Milliseconds time)
     {
-        Repeat(time.count());
+        Repeat(uint32(time.count()));
     }
 
     /**
@@ -188,9 +210,9 @@ public:
     * @param minTime Minimum time as std::chrono::duration until the event occurs.
     * @param maxTime Maximum time as std::chrono::duration until the event occurs.
     */
-    void Repeat(Milliseconds const& minTime, Milliseconds const& maxTime)
+    void Repeat(Milliseconds minTime, Milliseconds maxTime)
     {
-        Repeat(minTime.count(), maxTime.count());
+        Repeat(uint32(minTime.count()), uint32(maxTime.count()));
     }
 
     /**
@@ -199,10 +221,7 @@ public:
     * @param minTime Minimum time until the event occurs.
     * @param maxTime Maximum time until the event occurs.
     */
-    void Repeat(uint32 minTime, uint32 maxTime)
-    {
-        Repeat(urand(minTime, maxTime));
-    }
+    void Repeat(uint32 minTime, uint32 maxTime);
 
     /**
     * @name ExecuteEvent
@@ -216,14 +235,14 @@ public:
     * @brief Delays all events in the map. If delay is greater than or equal internal timer, delay will be 0.
     * @param delay Amount of delay in ms as std::chrono::duration.
     */
-    void DelayEvents(Milliseconds const& delay)
+    void DelayEvents(Milliseconds delay)
     {
-        DelayEvents(delay.count());
+        DelayEvents(uint32(delay.count()));
     }
 
     /**
     * @name DelayEvents
-    * @brief Delays all events in the map. If delay is greater than or equal internal timer, delay will be 0.
+    * @brief Delays all events in the map. If delay is greater than or equal internal timer, delay will be equal to internal timer.
     * @param delay Amount of delay.
     */
     void DelayEvents(uint32 delay)
@@ -237,9 +256,9 @@ public:
     * @param delay Amount of delay in ms as std::chrono::duration.
     * @param group Group of the events.
     */
-    void DelayEvents(Milliseconds const& delay, uint32 group)
+    void DelayEvents(Milliseconds delay, uint32 group)
     {
-        DelayEvents(delay.count(), group);
+        DelayEvents(uint32(delay.count()), group);
     }
 
     /**

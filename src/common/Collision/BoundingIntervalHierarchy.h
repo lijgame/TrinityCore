@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -19,9 +19,9 @@
 #ifndef _BIH_H
 #define _BIH_H
 
-#include "G3D/Vector3.h"
-#include "G3D/Ray.h"
-#include "G3D/AABox.h"
+#include <G3D/Vector3.h>
+#include <G3D/Ray.h>
+#include <G3D/AABox.h>
 
 #include "Define.h"
 
@@ -67,7 +67,7 @@ struct AABound
     Copyright (c) 2003-2007 Christopher Kulla
 */
 
-class BIH
+class TC_COMMON_API BIH
 {
     private:
         void init_empty()
@@ -80,8 +80,8 @@ class BIH
         }
     public:
         BIH() { init_empty(); }
-        template< class BoundsFunc, class PrimArray >
-        void build(const PrimArray &primitives, BoundsFunc &getBounds, uint32 leafSize = 3, bool printStats=false)
+        template <class BoundsFunc, class PrimArray>
+        void build(PrimArray const& primitives, BoundsFunc& getBounds, uint32 leafSize = 3, bool printStats = false)
         {
             if (primitives.size() == 0)
             {
@@ -91,7 +91,7 @@ class BIH
 
             buildData dat;
             dat.maxPrims = leafSize;
-            dat.numPrims = primitives.size();
+            dat.numPrims = uint32(primitives.size());
             dat.indices = new uint32[dat.numPrims];
             dat.primBound = new G3D::AABox[dat.numPrims];
             getBounds(primitives[0], bounds);
@@ -115,10 +115,10 @@ class BIH
             delete[] dat.primBound;
             delete[] dat.indices;
         }
-        uint32 primCount() const { return objects.size(); }
+        uint32 primCount() const { return uint32(objects.size()); }
 
         template<typename RayCallback>
-        void intersectRay(const G3D::Ray &r, RayCallback& intersectCallback, float &maxDist, bool stopAtFirst=false) const
+        void intersectRay(const G3D::Ray &r, RayCallback& intersectCallback, float &maxDist, bool stopAtFirst = false) const
         {
             float intervalMin = -1.f;
             float intervalMax = -1.f;

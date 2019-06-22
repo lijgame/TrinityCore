@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -19,14 +19,16 @@
  * Interaction between core and LFGScripts
  */
 
-#include "Common.h"
-#include "SharedDefines.h"
-#include "Player.h"
-#include "Group.h"
 #include "LFGScripts.h"
+#include "Common.h"
+#include "Group.h"
 #include "LFGMgr.h"
-#include "ScriptMgr.h"
+#include "Log.h"
+#include "Map.h"
+#include "Player.h"
 #include "ObjectAccessor.h"
+#include "ScriptMgr.h"
+#include "SharedDefines.h"
 #include "WorldSession.h"
 
 namespace lfg
@@ -93,7 +95,7 @@ void LFGPlayerScript::OnMapChanged(Player* player)
             return;
         }
 
-        for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
             if (Player* member = itr->GetSource())
                 player->GetSession()->SendNameQueryOpcode(member->GetGUID());
 
@@ -239,6 +241,12 @@ void LFGGroupScript::OnInviteMember(Group* group, ObjectGuid guid)
     // leader and no gguid == first invite after leader is added to new group (this is the real invite)
     if (leader && !gguid)
         sLFGMgr->LeaveLfg(leader);
+}
+
+void AddSC_LFGScripts()
+{
+    new LFGPlayerScript();
+    new LFGGroupScript();
 }
 
 } // namespace lfg

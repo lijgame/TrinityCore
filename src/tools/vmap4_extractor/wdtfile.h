@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -20,26 +20,24 @@
 #define WDTFILE_H
 
 #include "mpq_libmpq04.h"
-#include "wmo.h"
 #include <string>
-#include "stdlib.h"
 
 class ADTFile;
 
 class WDTFile
 {
-private:
-    MPQFile WDT;
-    string filename;
 public:
     WDTFile(char* file_name, char* file_name1);
     ~WDTFile(void);
-    bool init(char* map_id, unsigned int mapID);
 
-    string* gWmoInstansName;
-    int gnWMO;
-
+    bool init(uint32 mapId);
     ADTFile* GetMap(int x, int z);
+
+    std::vector<std::string> _wmoNames;
+
+private:
+    MPQFile _file;
+    std::string filename;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -30,26 +30,28 @@
 namespace VMAP
 {
     class WorldModel;
+    enum class ModelIgnoreFlags : uint32;
 }
 
 class GameObject;
 struct GameObjectDisplayInfoEntry;
 
-class GameObjectModelOwnerBase
+class TC_COMMON_API GameObjectModelOwnerBase
 {
 public:
-    virtual bool IsSpawned() const { return false; }
-    virtual uint32 GetDisplayId() const { return 0; }
-    virtual uint32 GetPhaseMask() const { return 0; }
-    virtual G3D::Vector3 GetPosition() const { return G3D::Vector3::zero(); }
-    virtual float GetOrientation() const { return 0.0f; }
-    virtual float GetScale() const { return 1.0f; }
-    virtual void DebugVisualizeCorner(G3D::Vector3 const& /*corner*/) const { }
+    virtual bool IsSpawned() const = 0;
+    virtual uint32 GetDisplayId() const = 0;
+    virtual uint32 GetPhaseMask() const = 0;
+    virtual G3D::Vector3 GetPosition() const = 0;
+    virtual float GetOrientation() const = 0;
+    virtual float GetScale() const = 0;
+    virtual void DebugVisualizeCorner(G3D::Vector3 const& /*corner*/) const = 0;
+    virtual ~GameObjectModelOwnerBase() { }
 };
 
-class GameObjectModel /*, public Intersectable*/
+class TC_COMMON_API GameObjectModel /*, public Intersectable*/
 {
-    GameObjectModel() : phasemask(0), iInvScale(0), iScale(0), iModel(NULL) { }
+    GameObjectModel() : phasemask(0), iInvScale(0), iScale(0), iModel(nullptr) { }
 public:
     std::string name;
 
@@ -65,7 +67,7 @@ public:
 
     bool isEnabled() const {return phasemask != 0;}
 
-    bool intersectRay(const G3D::Ray& Ray, float& MaxDist, bool StopAtFirstHit, uint32 ph_mask) const;
+    bool intersectRay(const G3D::Ray& Ray, float& MaxDist, bool StopAtFirstHit, uint32 ph_mask, VMAP::ModelIgnoreFlags ignoreFlags) const;
 
     static GameObjectModel* Create(std::unique_ptr<GameObjectModelOwnerBase> modelOwner, std::string const& dataPath);
 
@@ -83,5 +85,7 @@ private:
     VMAP::WorldModel* iModel;
     std::unique_ptr<GameObjectModelOwnerBase> owner;
 };
+
+TC_COMMON_API void LoadGameObjectModelList(std::string const& dataPath);
 
 #endif // _GAMEOBJECT_MODEL_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -17,8 +17,9 @@
  */
 
 #include "ObjectGuid.h"
+#include "Hash.h"
+#include "Log.h"
 #include "World.h"
-#include "ObjectMgr.h"
 #include <sstream>
 #include <iomanip>
 
@@ -87,7 +88,7 @@ ByteBuffer& operator<<(ByteBuffer& buf, PackedGuid const& guid)
 
 ByteBuffer& operator>>(ByteBuffer& buf, PackedGuidReader const& guid)
 {
-    buf.readPackGUID(*reinterpret_cast<uint64*>(guid.GuidPtr));
+    buf.readPackGUID(reinterpret_cast<uint64&>(guid.Guid));
     return buf;
 }
 
@@ -96,3 +97,26 @@ void ObjectGuidGeneratorBase::HandleCounterOverflow(HighGuid high)
     TC_LOG_ERROR("misc", "%s guid overflow!! Can't continue, shutting down server. ", ObjectGuid::GetTypeName(high));
     World::StopNow(ERROR_EXIT_CODE);
 }
+
+void ObjectGuidGeneratorBase::CheckGuidTrigger(ObjectGuid::LowType guidlow)
+{
+    if (!sWorld->IsGuidAlert() && guidlow > sWorld->getIntConfig(CONFIG_RESPAWN_GUIDALERTLEVEL))
+        sWorld->TriggerGuidAlert();
+    else if (!sWorld->IsGuidWarning() && guidlow > sWorld->getIntConfig(CONFIG_RESPAWN_GUIDWARNLEVEL))
+        sWorld->TriggerGuidWarning();
+}
+
+#define GUID_TRAIT_INSTANTIATE_GUID( HIGH_GUID ) \
+    template class TC_GAME_API ObjectGuidGenerator< HIGH_GUID >;
+
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Container)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Player)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::GameObject)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Transport)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Unit)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Pet)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Vehicle)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::DynamicObject)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Mo_Transport)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Instance)
+GUID_TRAIT_INSTANTIATE_GUID(HighGuid::Group)

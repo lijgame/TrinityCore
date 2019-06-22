@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -16,9 +16,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CharacterCache.h"
 #include "Common.h"
 #include "Corpse.h"
+#include "DBCStores.h"
+#include "GameTime.h"
+#include "Log.h"
+#include "Map.h"
 #include "Player.h"
+#include "UpdateData.h"
 #include "UpdateMask.h"
 #include "ObjectAccessor.h"
 #include "DatabaseEnv.h"
@@ -33,10 +39,9 @@ Corpse::Corpse(CorpseType type) : WorldObject(type != CORPSE_BONES), m_type(type
 
     m_valuesCount = CORPSE_END;
 
-    m_time = time(NULL);
+    m_time = GameTime::GetGameTime();
 
-    lootForBody = false;
-    lootRecipient = NULL;
+    lootRecipient = nullptr;
 }
 
 Corpse::~Corpse() { }
@@ -59,14 +64,13 @@ void Corpse::RemoveFromWorld()
     WorldObject::RemoveFromWorld();
 }
 
-bool Corpse::Create(uint32 guidlow, Map* map)
+bool Corpse::Create(ObjectGuid::LowType guidlow)
 {
-    SetMap(map);
     Object::_Create(guidlow, 0, HighGuid::Corpse);
     return true;
 }
 
-bool Corpse::Create(uint32 guidlow, Player* owner)
+bool Corpse::Create(ObjectGuid::LowType guidlow, Player* owner)
 {
     ASSERT(owner);
 
@@ -79,16 +83,12 @@ bool Corpse::Create(uint32 guidlow, Player* owner)
         return false;
     }
 
-    //we need to assign owner's map for corpse
-    //in other way we will get a crash in Corpse::SaveToDB()
-    SetMap(owner->GetMap());
-
     WorldObject::_Create(guidlow, HighGuid::Corpse, owner->GetPhaseMask());
 
     SetObjectScale(1.0f);
     SetGuidValue(CORPSE_FIELD_OWNER, owner->GetGUID());
 
-    _gridCoord = Trinity::ComputeGridCoord(GetPositionX(), GetPositionY());
+    _cellCoord = Trinity::ComputeCellCoord(GetPositionX(), GetPositionY());
 
     return true;
 }
@@ -123,20 +123,6 @@ void Corpse::SaveToDB()
     CharacterDatabase.CommitTransaction(trans);
 }
 
-void Corpse::DeleteBonesFromWorld()
-{
-    ASSERT(GetType() == CORPSE_BONES);
-    Corpse* corpse = ObjectAccessor::GetCorpse(*this, GetGUID());
-
-    if (!corpse)
-    {
-        TC_LOG_ERROR("entities.player", "Bones %u not found in world.", GetGUID().GetCounter());
-        return;
-    }
-
-    AddObjectToRemoveList();
-}
-
 void Corpse::DeleteFromDB(SQLTransaction& trans)
 {
     DeleteFromDB(GetOwnerGUID(), trans);
@@ -149,13 +135,27 @@ void Corpse::DeleteFromDB(ObjectGuid const& ownerGuid, SQLTransaction& trans)
     CharacterDatabase.ExecuteOrAppend(trans, stmt);
 }
 
-bool Corpse::LoadCorpseFromDB(uint32 guid, Field* fields)
+uint32 Corpse::GetFaction() const
+{
+    // inherit faction from player race
+    uint32 const race = GetByteValue(CORPSE_FIELD_BYTES_1, 1);
+
+    ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(race);
+    return rEntry ? rEntry->FactionID : 0;
+}
+
+void Corpse::ResetGhostTime()
+{
+    m_time = GameTime::GetGameTime();
+}
+
+bool Corpse::LoadCorpseFromDB(ObjectGuid::LowType guid, Field* fields)
 {
     //        0     1     2     3            4      5          6          7       8       9        10     11        12    13          14          15         16
     // SELECT posX, posY, posZ, orientation, mapId, displayId, itemCache, bytes1, bytes2, guildId, flags, dynFlags, time, corpseType, instanceId, phaseMask, guid FROM corpse WHERE mapId = ? AND instanceId = ?
 
 
-    uint32 ownerGuid = fields[16].GetUInt32();
+    ObjectGuid::LowType ownerGuid = fields[16].GetUInt32();
     float posX   = fields[0].GetFloat();
     float posY   = fields[1].GetFloat();
     float posZ   = fields[2].GetFloat();
@@ -166,7 +166,7 @@ bool Corpse::LoadCorpseFromDB(uint32 guid, Field* fields)
 
     SetObjectScale(1.0f);
     SetUInt32Value(CORPSE_FIELD_DISPLAY_ID, fields[5].GetUInt32());
-    _LoadIntoDataField(fields[6].GetCString(), CORPSE_FIELD_ITEM, EQUIPMENT_SLOT_END);
+    _LoadIntoDataField(fields[6].GetString(), CORPSE_FIELD_ITEM, EQUIPMENT_SLOT_END);
     SetUInt32Value(CORPSE_FIELD_BYTES_1, fields[7].GetUInt32());
     SetUInt32Value(CORPSE_FIELD_BYTES_2, fields[8].GetUInt32());
     SetUInt32Value(CORPSE_FIELD_GUILD, fields[9].GetUInt32());
@@ -192,14 +192,14 @@ bool Corpse::LoadCorpseFromDB(uint32 guid, Field* fields)
         return false;
     }
 
-    _gridCoord = Trinity::ComputeGridCoord(GetPositionX(), GetPositionY());
+    _cellCoord = Trinity::ComputeCellCoord(GetPositionX(), GetPositionY());
     return true;
 }
 
 bool Corpse::IsExpired(time_t t) const
 {
     // Deleted character
-    if (!sWorld->GetCharacterNameData(GetOwnerGUID()))
+    if (!sCharacterCache->HasCharacterCacheEntry(GetOwnerGUID()))
         return true;
 
     if (m_type == CORPSE_BONES)

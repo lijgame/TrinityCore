@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -62,14 +62,14 @@ public:
             events.Reset();
         }
 
-        void EnterCombat(Unit* /*who*/) override
+        void JustEngagedWith(Unit* /*who*/) override
         {
             Talk(SAY_AGGRO);
-            events.ScheduleEvent(EVENT_CLEAVE, urand(1 * IN_MILLISECONDS, 9 * IN_MILLISECONDS));
-            events.ScheduleEvent(EVENT_FRIGHTENING_SHOUT, urand(2 * IN_MILLISECONDS, 19 * IN_MILLISECONDS));
+            events.ScheduleEvent(EVENT_CLEAVE, 1s, 9s);
+            events.ScheduleEvent(EVENT_FRIGHTENING_SHOUT, 2s, 19s);
             events.ScheduleEvent(EVENT_WHIRLWIND1, urand(1 * IN_MILLISECONDS, 13 * IN_MILLISECONDS));
             events.ScheduleEvent(EVENT_WHIRLWIND2, urand(5 * IN_MILLISECONDS, 20 * IN_MILLISECONDS));
-            events.ScheduleEvent(EVENT_MORTAL_STRIKE, urand(5 * IN_MILLISECONDS, 20 * IN_MILLISECONDS));
+            events.ScheduleEvent(EVENT_MORTAL_STRIKE, 5s, 20s);
         }
 
         void DoAction(int32 actionId) override
@@ -78,7 +78,7 @@ public:
                 Talk(SAY_BUFF);
         }
 
-        bool CheckInRoom()
+        bool CheckInRoom() override
         {
             if (me->GetDistance2d(me->GetHomePosition().GetPositionX(), me->GetHomePosition().GetPositionY()) > 50)
             {
@@ -106,11 +106,11 @@ public:
                 {
                     case EVENT_CLEAVE:
                         DoCastVictim(SPELL_CLEAVE);
-                        events.ScheduleEvent(EVENT_CLEAVE, urand(10 * IN_MILLISECONDS, 16 * IN_MILLISECONDS));
+                        events.ScheduleEvent(EVENT_CLEAVE, 10s, 16s);
                         break;
                     case EVENT_FRIGHTENING_SHOUT:
                         DoCastVictim(SPELL_FRIGHTENING_SHOUT);
-                        events.ScheduleEvent(EVENT_FRIGHTENING_SHOUT, urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
+                        events.ScheduleEvent(EVENT_FRIGHTENING_SHOUT, 10s, 15s);
                         break;
                     case EVENT_WHIRLWIND1:
                         DoCastVictim(SPELL_WHIRLWIND1);
@@ -122,11 +122,14 @@ public:
                         break;
                     case EVENT_MORTAL_STRIKE:
                         DoCastVictim(SPELL_MORTAL_STRIKE);
-                        events.ScheduleEvent(EVENT_MORTAL_STRIKE, urand(10 * IN_MILLISECONDS, 30 * IN_MILLISECONDS));
+                        events.ScheduleEvent(EVENT_MORTAL_STRIKE, 10s, 30s);
                         break;
                     default:
                         break;
                 }
+
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
             }
 
             DoMeleeAttackIfReady();
