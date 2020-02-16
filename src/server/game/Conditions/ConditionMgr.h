@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -23,6 +22,7 @@
 #include "Hash.h"
 #include <array>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class Creature;
@@ -83,8 +83,11 @@ enum ConditionTypes
     CONDITION_TAXI                     = 46,                   // 0                0              0                  true if player is on taxi
     CONDITION_QUESTSTATE               = 47,                   // quest_id         state_mask     0                  true if player is in any of the provided quest states for the quest (1 = not taken, 2 = completed, 8 = in progress, 32 = failed, 64 = rewarded)
     CONDITION_QUEST_OBJECTIVE_PROGRESS = 48,                   // quest_id         objectiveIndex objectiveCount     true if player has reached the specified objectiveCount quest progress for the objectiveIndex for the specified quest
-    CONDITION_GAMEMASTER               = 49,                   // canBeGM          0              0                  true if player is gamemaster (or can be gamemaster)
-    CONDITION_MAX                      = 50                    // MAX
+    CONDITION_DIFFICULTY_ID            = 49,                   // Difficulty       0              0                  true is map has difficulty id
+    CONDITION_GAMEMASTER               = 50,                   // canBeGM          0              0                  true if player is gamemaster (or can be gamemaster)
+    CONDITION_OBJECT_ENTRY_GUID_MASTER = 51,                   // TypeID           entry          guid               true if object is type TypeID and the entry is 0 or matches entry of the object or matches guid of the object using master branch TypeID
+    CONDITION_TYPE_MASK_MASTER         = 52,                   // TypeMask         0              0                  true if object is type object's TypeMask matches provided TypeMask using master branch TypeMask
+    CONDITION_MAX
 };
 
 /*! Documentation on implementing a new ConditionSourceType:
@@ -263,6 +266,8 @@ class TC_GAME_API ConditionMgr
         bool IsObjectMeetingSmartEventConditions(int32 entryOrGuid, uint32 eventId, uint32 sourceType, Unit* unit, WorldObject* baseObject) const;
         bool IsObjectMeetingVendorItemConditions(uint32 creatureId, uint32 itemId, Player* player, Creature* vendor) const;
 
+        bool IsSpellUsedInSpellClickConditions(uint32 spellId) const;
+
         struct ConditionTypeInfo
         {
             char const* Name;
@@ -292,6 +297,8 @@ class TC_GAME_API ConditionMgr
         ConditionEntriesByCreatureIdMap SpellClickEventConditionStore;
         ConditionEntriesByCreatureIdMap NpcVendorConditionContainerStore;
         SmartEventConditionContainer    SmartEventConditionStore;
+
+        std::unordered_set<uint32> SpellsUsedInSpellClickConditions;
 };
 
 #define sConditionMgr ConditionMgr::instance()

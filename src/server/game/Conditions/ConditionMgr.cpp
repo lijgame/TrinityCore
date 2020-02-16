@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -116,7 +115,10 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { "On Taxi",                  false, false, false },
     { "Quest state mask",          true, true,  false },
     { "Quest objective progress",  true, true,   true },
-    { "Is Gamemaster",             true, false, false }
+    { "Map difficulty",            true, false, false },
+    { "Is Gamemaster",             true, false, false },
+    { "Object Entry or Guid",      true, true,  true  },
+    { "Object TypeMask",           true, false, false }
 };
 
 // Checks if object meets the condition
@@ -187,19 +189,19 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
         case CONDITION_CLASS:
         {
             if (Unit* unit = object->ToUnit())
-                condMeets = (unit->getClassMask() & ConditionValue1) != 0;
+                condMeets = (unit->GetClassMask() & ConditionValue1) != 0;
             break;
         }
         case CONDITION_RACE:
         {
             if (Unit* unit = object->ToUnit())
-                condMeets = (unit->getRaceMask() & ConditionValue1) != 0;
+                condMeets = (unit->GetRaceMask() & ConditionValue1) != 0;
             break;
         }
         case CONDITION_GENDER:
         {
             if (Player* player = object->ToPlayer())
-                condMeets = player->getGender() == ConditionValue1;
+                condMeets = player->GetNativeGender() == ConditionValue1;
             break;
         }
         case CONDITION_SKILL:
@@ -285,7 +287,7 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
         case CONDITION_LEVEL:
         {
             if (Unit* unit = object->ToUnit())
-                condMeets = CompareValues(static_cast<ComparisionType>(ConditionValue2), static_cast<uint32>(unit->getLevel()), ConditionValue1);
+                condMeets = CompareValues(static_cast<ComparisionType>(ConditionValue2), static_cast<uint32>(unit->GetLevel()), ConditionValue1);
             break;
         }
         case CONDITION_DRUNKENSTATE:
@@ -505,7 +507,7 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
         {
             if (Player* player = object->ToPlayer())
             {
-                const Quest* quest = sObjectMgr->GetQuestTemplate(ConditionValue1);
+                const Quest* quest = ASSERT_NOTNULL(sObjectMgr->GetQuestTemplate(ConditionValue1));
                 uint16 log_slot = player->FindQuestSlot(quest->GetQuestId());
                 if (log_slot >= MAX_QUEST_LOG_SIZE)
                     break;
@@ -514,7 +516,11 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
             }
             break;
         }
-
+        case CONDITION_DIFFICULTY_ID:
+        {
+            condMeets = object->GetMap()->GetDifficulty() == ConditionValue1;
+            break;
+        }
         case CONDITION_GAMEMASTER:
         {
             if (Player* player = object->ToPlayer())
@@ -715,6 +721,9 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             break;
         case CONDITION_QUEST_OBJECTIVE_PROGRESS:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
+            break;
+        case CONDITION_DIFFICULTY_ID:
+            mask |= GRID_MAP_TYPE_MASK_ALL;
             break;
         case CONDITION_GAMEMASTER:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
@@ -1026,6 +1035,11 @@ bool ConditionMgr::IsObjectMeetingVendorItemConditions(uint32 creatureId, uint32
     return true;
 }
 
+bool ConditionMgr::IsSpellUsedInSpellClickConditions(uint32 spellId) const
+{
+    return SpellsUsedInSpellClickConditions.find(spellId) != SpellsUsedInSpellClickConditions.end();
+}
+
 ConditionMgr* ConditionMgr::instance()
 {
     static ConditionMgr instance;
@@ -1226,6 +1240,8 @@ void ConditionMgr::LoadConditions(bool isReload)
                 case CONDITION_SOURCE_TYPE_SPELL_CLICK_EVENT:
                 {
                     SpellClickEventConditionStore[cond->SourceGroup][cond->SourceEntry].push_back(cond);
+                    if (cond->ConditionType == CONDITION_AURA)
+                        SpellsUsedInSpellClickConditions.insert(cond->ConditionValue1);
                     valid = true;
                     ++count;
                     continue;   // do not add to m_AllocatedMemory to avoid double deleting
@@ -1275,6 +1291,8 @@ void ConditionMgr::LoadConditions(bool isReload)
 
         //handle not grouped conditions
         //add new Condition to storage based on Type/Entry
+        if (cond->SourceType == CONDITION_SOURCE_TYPE_SPELL_CLICK_EVENT && cond->ConditionType == CONDITION_AURA)
+            SpellsUsedInSpellClickConditions.insert(cond->ConditionValue1);
         ConditionStore[cond->SourceType][cond->SourceEntry].push_back(cond);
         ++count;
     }
@@ -2317,6 +2335,13 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
             }
             break;
         }
+        case CONDITION_DIFFICULTY_ID:
+            if (cond->ConditionValue1 >= MAX_DIFFICULTY)
+            {
+                TC_LOG_ERROR("sql.sql", "%s has non existing difficulty in value1 (%u), skipped.", cond->ToString(true).c_str(), cond->ConditionValue1);
+                return false;
+            }
+            break;
         case CONDITION_IN_WATER:
         case CONDITION_CHARMED:
         case CONDITION_TAXI:
@@ -2377,6 +2402,7 @@ void ConditionMgr::Clean()
                 delete *i;
 
     SpellClickEventConditionStore.clear();
+    SpellsUsedInSpellClickConditions.clear();
 
     for (ConditionEntriesByCreatureIdMap::iterator itr = NpcVendorConditionContainerStore.begin(); itr != NpcVendorConditionContainerStore.end(); ++itr)
         for (ConditionsByEntryMap::iterator it = itr->second.begin(); it != itr->second.end(); ++it)

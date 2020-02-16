@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -136,7 +135,7 @@ class Roll : public LootValidatorRef
 
         ObjectGuid itemGUID;
         uint32 itemid;
-        int32  itemRandomPropId;
+        int32 itemRandomPropId;
         uint32 itemRandomSuffix;
         uint8 itemCount;
         typedef std::map<ObjectGuid, RollVote> PlayerVote;
@@ -188,24 +187,24 @@ class TC_GAME_API Group
         void Update(uint32 diff);
 
         // group manipulation methods
-        bool   Create(Player* leader);
-        void   LoadGroupFromDB(Field* field);
-        void   LoadMemberFromDB(ObjectGuid::LowType guidLow, uint8 memberFlags, uint8 subgroup, uint8 roles);
-        bool   AddInvite(Player* player);
-        void   RemoveInvite(Player* player);
-        void   RemoveAllInvites();
-        bool   AddLeaderInvite(Player* player);
-        bool   AddMember(Player* player);
-        bool   RemoveMember(ObjectGuid guid, RemoveMethod const& method = GROUP_REMOVEMETHOD_DEFAULT, ObjectGuid kicker = ObjectGuid::Empty, char const* reason = nullptr);
-        void   ChangeLeader(ObjectGuid guid);
- static void   ConvertLeaderInstancesToGroup(Player* player, Group* group, bool switchLeader);
-        void   SetLootMethod(LootMethod method);
-        void   SetLooterGuid(ObjectGuid guid);
-        void   SetMasterLooterGuid(ObjectGuid guid);
-        void   UpdateLooterGuid(WorldObject* pLootedObject, bool ifneed = false);
-        void   SetLootThreshold(ItemQualities threshold);
-        void   Disband(bool hideDestroy = false);
-        void   SetLfgRoles(ObjectGuid guid, uint8 roles);
+        bool Create(Player* leader);
+        void LoadGroupFromDB(Field* field);
+        void LoadMemberFromDB(ObjectGuid::LowType guidLow, uint8 memberFlags, uint8 subgroup, uint8 roles);
+        bool AddInvite(Player* player);
+        void RemoveInvite(Player* player);
+        void RemoveAllInvites();
+        bool AddLeaderInvite(Player* player);
+        bool AddMember(Player* player);
+        bool RemoveMember(ObjectGuid guid, RemoveMethod const& method = GROUP_REMOVEMETHOD_DEFAULT, ObjectGuid kicker = ObjectGuid::Empty, char const* reason = nullptr);
+        void ChangeLeader(ObjectGuid guid);
+        static void ConvertLeaderInstancesToGroup(Player* player, Group* group, bool switchLeader);
+        void SetLootMethod(LootMethod method);
+        void SetLooterGuid(ObjectGuid guid);
+        void SetMasterLooterGuid(ObjectGuid guid);
+        void UpdateLooterGuid(WorldObject* pLootedObject, bool ifneed = false);
+        void SetLootThreshold(ItemQualities threshold);
+        void Disband(bool hideDestroy = false);
+        void SetLfgRoles(ObjectGuid guid, uint8 roles);
 
         // properties accessories
         bool IsFull() const;

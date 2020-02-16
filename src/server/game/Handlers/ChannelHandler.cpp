@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -68,8 +67,23 @@ void WorldSession::HandleJoinChannel(WorldPacket& recvPacket)
         return;
 
     if (ChannelMgr* cMgr = ChannelMgr::forTeam(GetPlayer()->GetTeam()))
-        if (Channel* channel = cMgr->GetJoinChannel(channelId, channelName, zone))
-            channel->JoinChannel(GetPlayer(), password);
+    {
+        if (channelId)
+        { // system channel
+            if (Channel* channel = cMgr->GetSystemChannel(channelId, zone))
+                channel->JoinChannel(GetPlayer());
+        }
+        else
+        { // custom channel
+            if (Channel* channel = cMgr->GetCustomChannel(channelName))
+                channel->JoinChannel(GetPlayer(), password);
+            else if (Channel* channel = cMgr->CreateCustomChannel(channelName))
+            {
+                channel->SetPassword(password);
+                channel->JoinChannel(GetPlayer(), password);
+            }
+        }
+    }
 }
 
 void WorldSession::HandleLeaveChannel(WorldPacket& recvPacket)
@@ -102,8 +116,6 @@ void WorldSession::HandleLeaveChannel(WorldPacket& recvPacket)
 
         if (channelId)
             cMgr->LeftChannel(channelId, zone);
-        else
-            cMgr->LeftChannel(channelName);
     }
 }
 
