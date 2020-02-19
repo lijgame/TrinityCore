@@ -419,7 +419,7 @@ class bot_ai : public CreatureAI
         static float _getAttackDistance(float distance) { return distance*0.72f; }
 
         //for moved
-        void GetHomePosition(uint16& mapid, Position* pos) const;
+        void GetHomePosition(uint32& mapid, Position* pos) const;
 
         //utilities
         void _AddItemTemplateLink(Player const* forPlayer, ItemTemplate const* item, std::ostringstream &str) const;

@@ -3467,7 +3467,7 @@ void bot_ai::_updateStandState() const
             if (_atHome && !_evadeMode && !me->IsInCombat() && !me->isMoving() &&
                 me->IsStandState() && Rand() < 15)
             {
-                uint16 mapid;
+                uint32 mapid;
                 Position pos;
                 GetHomePosition(mapid, &pos);
                 if (me->GetExactDist(&pos) < 5 && me->GetOrientation() == pos.GetOrientation())
@@ -10996,7 +10996,7 @@ void bot_ai::Evade()
         return;
     }
 
-    uint16 mapid;
+    uint32 mapid;
     Position pos;
     GetHomePosition(mapid, &pos);
 
@@ -11080,7 +11080,7 @@ void bot_ai::TeleportHome()
 
     AbortTeleport();
 
-    uint16 mapid;
+    uint32 mapid;
     Position pos;
     GetHomePosition(mapid, &pos);
 
@@ -11103,7 +11103,7 @@ bool bot_ai::FinishTeleport(/*uint32 mapId, uint32 instanceId, float x, float y,
     //1) Cannot teleport: master disappeared - return home
     if (IAmFree()/* || master->GetSession()->isLogingOut()*/)
     {
-        uint16 mapid;
+        uint32 mapid;
         Position pos;
         GetHomePosition(mapid, &pos);
 
@@ -11168,10 +11168,10 @@ void bot_ai::AbortTeleport()
     CancelBoot();
 }
 
-void bot_ai::GetHomePosition(uint16& mapid, Position* pos) const
+void bot_ai::GetHomePosition(uint32& mapid, Position* pos) const
 {
     CreatureData const* data = me->GetCreatureData();
-    mapid = data->spawnPoint.GetMapId();
+    mapid = data->mapId;
     pos->Relocate(data->spawnPoint.GetPositionX(), data->spawnPoint.GetPositionY(), data->spawnPoint.GetPositionZ(), data->spawnPoint.GetOrientation());
 }
 

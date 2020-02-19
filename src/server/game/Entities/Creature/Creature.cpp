@@ -3443,7 +3443,7 @@ bool Creature::LoadBotCreatureFromDB(ObjectGuid::LowType spawnId, Map* map, bool
 
     m_respawnCompatibilityMode = true;
     m_creatureData = data;
-    m_respawnradius = data->spawndist;
+    m_wanderDistance = data->wander_distance;
     m_respawnDelay = data->spawntimesecs;
 
     if (!Create(map->GenerateLowGuid<HighGuid::Unit>(), map, data->phaseMask, data->id, data->spawnPoint, data, 0U , !m_respawnCompatibilityMode))
