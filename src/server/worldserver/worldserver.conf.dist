@@ -3318,6 +3318,28 @@ NoGrayAggro.Above = 0
 NoGrayAggro.Below = 0
 
 #
+
+#     Custom.AttackSpeedForPlayer
+#     Custom.AttackSpeedForMobs
+#         Set it to a number upper than 1 to speed up the attack of the player or the mobs
+#     Default : 1.0 (Normal speed)
+#     Example : 2.0 (attack speed is 200% faster)
+#     Example : 0.5 (attack speed is 50% slower)
+#
+
+Custom.AttackSpeedForPlayer = 1.0
+Custom.AttackSpeedForMobs = 1.0
+
+#     Custom.AutoCompleteQuestDelay
+#         Set it to a number to enable the summon of the quest giver of the quest you just completed.
+#	      The number indicates the duration of the summoning.
+#     Default : 0 (AutoComplete Disable)
+#     Example : 180 (When a quest is completed, the quest giver will be summoned for 3 minutes)
+#
+
+Custom.AutoCompleteQuestDelay = 180
+
+
 #    PreventRenameCharacterOnCustomization
 #        Description: If option is set to 1, player can not rename the character in character customization.
 #                     Applies to all character customization commands.
@@ -3328,6 +3350,7 @@ NoGrayAggro.Below = 0
 PreventRenameCharacterOnCustomization = 0
 
 #
+
 ###################################################################################################
 
 ###################################################################################################

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -1499,6 +1498,11 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_CALCULATE_CREATURE_ZONE_AREA_DATA] = sConfigMgr->GetBoolDefault("Calculate.Creature.Zone.Area.Data", false);
     m_bool_configs[CONFIG_CALCULATE_GAMEOBJECT_ZONE_AREA_DATA] = sConfigMgr->GetBoolDefault("Calculate.Gameoject.Zone.Area.Data", false);
 
+
+    m_int_configs[CONFIG_QUEST_AUTOCOMPLETE_DELAY] = sConfigMgr->GetIntDefault("Custom.AutoCompleteQuestDelay", 0);
+
+    m_float_configs[CONFIG_ATTACKSPEED_PLAYER] = sConfigMgr->GetFloatDefault("Custom.AttackSpeedForPlayer", 1.0f);
+    m_float_configs[CONFIG_ATTACKSPEED_ALL] = sConfigMgr->GetFloatDefault("Custom.AttackSpeedForMobs", 1.0f);
     // HotSwap
     m_bool_configs[CONFIG_HOTSWAP_ENABLED] = sConfigMgr->GetBoolDefault("HotSwap.Enabled", true);
     m_bool_configs[CONFIG_HOTSWAP_RECOMPILER_ENABLED] = sConfigMgr->GetBoolDefault("HotSwap.EnableReCompiler", true);
@@ -1857,6 +1861,9 @@ void World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading Vehicle Accessories...");
     sObjectMgr->LoadVehicleAccessories();                       // must be after LoadCreatureTemplates() and LoadNPCSpellClickSpells()
+
+    TC_LOG_INFO("server.loading", "Loading Vehicle Seat Addon Data...");
+    sObjectMgr->LoadVehicleSeatAddon();                         // must be after loading DBC
 
     TC_LOG_INFO("server.loading", "Loading SpellArea Data...");                // must be after quest load
     sSpellMgr->LoadSpellAreas();

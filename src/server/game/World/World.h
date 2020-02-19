@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -197,6 +196,8 @@ enum WorldFloatConfigs
     CONFIG_STATS_LIMITS_PARRY,
     CONFIG_STATS_LIMITS_BLOCK,
     CONFIG_STATS_LIMITS_CRIT,
+    CONFIG_ATTACKSPEED_PLAYER,
+    CONFIG_ATTACKSPEED_ALL,
     CONFIG_ARENA_WIN_RATING_MODIFIER_1,
     CONFIG_ARENA_WIN_RATING_MODIFIER_2,
     CONFIG_ARENA_LOSE_RATING_MODIFIER,
@@ -383,6 +384,7 @@ enum WorldIntConfigs
     CONFIG_CHARTER_COST_ARENA_5v5,
     CONFIG_NO_GRAY_AGGRO_ABOVE,
     CONFIG_NO_GRAY_AGGRO_BELOW,
+    CONFIG_QUEST_AUTOCOMPLETE_DELAY,
     CONFIG_AUCTION_GETALL_DELAY,
     CONFIG_AUCTION_SEARCH_DELAY,
     CONFIG_TALENTS_INSPECTING,
